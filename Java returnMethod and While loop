@@ -1,0 +1,55 @@
+import java.util.*;
+
+//Example of ReturnMethod + while Loop
+//This is heavily critical when it comes to game development!
+
+public class test1 {
+	
+	public static String pick() {
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Pick A or B?");
+		return sc.nextLine();
+		}
+	
+	public static boolean elimination(String choice) {
+		return choice.equalsIgnoreCase("B");
+	}
+	
+	public static boolean asktoContinueorExit() {
+		Scanner sc = new Scanner(System.in);
+		while (true) {
+			System.out.print("Continue or End the choices? ");
+			String input = sc.nextLine();
+			
+			if (input.equalsIgnoreCase("Continue")) {
+				return true;
+			} else if (input.equalsIgnoreCase("Exit")) {
+				return false;
+			} else {
+				System.out.println("Invalid Input!");
+			}
+		}
+	}
+
+	public static void main(String[] args) {
+		Scanner sc = new Scanner(System.in);
+		boolean playing = true;
+		
+		while (playing) {
+			String choice = pick();
+			
+			if (elimination(choice)) {
+				System.out.println("You died!");
+				playing = asktoContinueorExit();
+			} else {
+				System.out.println("You're Safe!");
+				playing = asktoContinueorExit();
+			}
+		}
+		
+			System.out.println("Thank you for playing!");
+			sc.close();
+		
+		}
+
+	}
