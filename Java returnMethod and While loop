@@ -40,11 +40,10 @@ public class test1 {
 			
 			if (elimination(choice)) {
 				System.out.println("You died!");
-				playing = asktoContinueorExit();
 			} else {
 				System.out.println("You're Safe!");
-				playing = asktoContinueorExit();
 			}
+				playing = asktoContinueorExit();
 		}
 		
 			System.out.println("Thank you for playing!");
