@@ -1,0 +1,257 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.io.*;
+import java.util.Scanner;
+import javax.swing.table.DefaultTableModel;
+public class Main {
+	//============= GLOBAL VARIABLES
+	static JTabbedPane tab = new JTabbedPane();
+	
+	static ArrayList<Item> inventoryItems = new ArrayList<>();
+	
+	static DefaultTableModel inventoryModel = new DefaultTableModel();//Content
+	public static void InventoryPanel() {
+		
+		JPanel inventoryPanel = new JPanel(new FlowLayout());
+		JTextField idField = new JTextField(8);
+        JTextField itemNameField = new JTextField(8);
+        JTextField itemPriceField = new JTextField(8);
+        JTextField itemQtyField = new JTextField(8);
+
+        inventoryPanel.add(new JLabel("ID:"));
+        inventoryPanel.add(idField);
+
+        inventoryPanel.add(new JLabel("Name:"));
+        inventoryPanel.add(itemNameField);
+
+        inventoryPanel.add(new JLabel("Price:"));
+        inventoryPanel.add(itemPriceField);
+
+        inventoryPanel.add(new JLabel("Quantity:"));
+        inventoryPanel.add(itemQtyField);
+        
+        JButton submitBtn = new JButton("Submit");
+        inventoryPanel.add(submitBtn);
+        
+        JButton deleteBtn = new JButton("Delete");
+        deleteBtn.setVisible(false);
+        JButton cancelBtn = new JButton("Cancel");
+        cancelBtn.setVisible(false);
+        
+        JTable inventoryTable = new JTable(inventoryModel) {
+        	public boolean isCellEditable(int row, int column) {
+        		return false;
+        	}
+        };
+        JScrollPane scrollView = new JScrollPane(inventoryTable);//Scroll bar
+        scrollView.setPreferredSize(new Dimension(580,300));
+        
+        //Column/header
+        inventoryModel.addColumn("ID");
+        inventoryModel.addColumn("Name");
+        inventoryModel.addColumn("Price");
+        inventoryModel.addColumn("Quantity");
+        
+        submitBtn.addActionListener(e->{
+        	String id = idField.getText();
+        	String name = itemNameField.getText();
+        	double price = Double.parseDouble( itemPriceField.getText());
+        	int qty = Integer.parseInt(itemQtyField.getText());
+        	if(submitBtn.getText().equalsIgnoreCase("Update"))
+        	{
+        		//update na function
+        		
+        		Item tobeUpdated = null;
+        		for (Item it : inventoryItems) {
+    				if(id.equalsIgnoreCase(it.GetID())) {
+    					tobeUpdated = it;
+    					break;
+    				}
+    			}
+        		if(tobeUpdated == null) {
+        			JOptionPane.showMessageDialog(null, "This item is missing!");
+        			return;
+        		}
+        		
+        		tobeUpdated.SetName(name);
+        		tobeUpdated.SetPrice(price);
+        		tobeUpdated.SetQty(qty);
+        		JOptionPane.showMessageDialog(null, "Item updated successfully!");
+        		submitBtn.setText("Submit");
+            	idField.setEditable(true);
+            	SaveData();
+            	RetrieveData();
+            	deleteBtn.setVisible(false);
+            	cancelBtn.setVisible(false);
+        	}
+        	else
+        	{
+        		//Guardian Pattern
+        		if(itemPriceField.getText().equals("") || itemQtyField.getText().equals("")) {
+        			JOptionPane.showMessageDialog(null, "Do not leave empty fields!");
+        			return;
+        		}
+            	if(id.equals("") || name.equals("") || price<0 || qty < 0)
+            	{
+            		JOptionPane.showMessageDialog(null, "Do not leave empty fields!");
+            		return;
+            	}
+            	for (Item it : inventoryItems) {
+    				if(id.equalsIgnoreCase(it.GetID())) {
+    					JOptionPane.showMessageDialog(null, "ID is already taken!");
+    					return;
+    				}
+    			}
+            	
+            	Item newItem = new Item(id,name,price,qty);
+            	inventoryItems.add(newItem);
+            	inventoryModel.addRow(new Object[] {id,name,price,qty});
+            	RetrieveData();
+            	SaveData();
+            	
+        	}
+        	
+        	
+        	idField.setText("");
+        	itemNameField.setText("");
+        	itemPriceField.setText("");
+        	itemQtyField.setText("");
+        });
+        
+        inventoryTable.getSelectionModel().addListSelectionListener(e->{
+        	if(!e.getValueIsAdjusting()) {
+        		int row = inventoryTable.getSelectedRow();
+        		System.out.println("selected row index: "+row);
+        		System.out.println("Arraylist size: "+ inventoryItems.size());
+        		
+        		//Guardian Pattern
+        		if(row == -1 || row >= inventoryItems.size()) {
+        			System.out.println("out of bounds");
+        			return;
+        		}
+        		
+        		Item selectedItem = inventoryItems.get(row);
+        		idField.setText(selectedItem.GetID());
+            	itemNameField.setText(selectedItem.GetName());
+            	itemPriceField.setText(selectedItem.GetPrice()+"");
+            	itemQtyField.setText(selectedItem.GetQty()+"");
+            	
+            	submitBtn.setText("Update");
+            	
+            	idField.setEditable(false);
+            	deleteBtn.setVisible(true);
+            	cancelBtn.setVisible(true);
+        	}
+        });
+        
+        deleteBtn.addActionListener(e->{
+        	String id = idField.getText();
+        	Item tobeUDeleted= null;
+    		for (Item it : inventoryItems) {
+				if(id.equalsIgnoreCase(it.GetID())) {
+					tobeUDeleted = it;
+					break;
+				}
+			}
+    		if(tobeUDeleted == null) {
+    			JOptionPane.showMessageDialog(null, "This item is missing!");
+    			return;
+    		}
+    		inventoryItems.remove(tobeUDeleted);
+    		JOptionPane.showMessageDialog(null, "Item deleted successfully!");
+        	SaveData();
+        	RetrieveData();
+        	submitBtn.setText("Submit");
+        	idField.setEditable(true);
+        	deleteBtn.setVisible(false);
+        	cancelBtn.setVisible(false);
+        	idField.setText("");
+        	itemNameField.setText("");
+        	itemPriceField.setText("");
+        	itemQtyField.setText("");
+        });
+        cancelBtn.addActionListener(e->{
+        	SaveData();
+        	RetrieveData();
+        	submitBtn.setText("Submit");
+        	idField.setEditable(true);
+        	deleteBtn.setVisible(false);
+        	cancelBtn.setVisible(false);
+        	idField.setText("");
+        	itemNameField.setText("");
+        	itemPriceField.setText("");
+        	itemQtyField.setText("");
+        });
+        
+        
+        inventoryPanel.add(scrollView);
+        
+        inventoryPanel.add(deleteBtn);
+        inventoryPanel.add(cancelBtn);
+		tab.add("Inventory",inventoryPanel);
+	}
+	public static void CashierPanel() {
+		JPanel cashierPanel = new JPanel(new FlowLayout());
+		JLabel comingSoonLbl = new JLabel("Coming Soon!");
+		comingSoonLbl.setFont(new Font("Arial", Font.BOLD,70));
+		cashierPanel.add(comingSoonLbl);
+		tab.add("Cashier",cashierPanel);
+	}
+	public static void RetrieveData() {
+		//Refresh
+		inventoryModel.setRowCount(0);
+		inventoryItems.clear();
+		//Retrieve
+        try {
+        	Scanner scan = new Scanner(new File("C:\\Users\\User\\Inventory.txt"));
+        	while(scan.hasNextLine()) {
+        		String datas[] = scan.nextLine().split(",");
+        		String id = datas[0];
+            	String name = datas[1];
+            	double price = Double.parseDouble( datas[2]);
+            	int qty = Integer.parseInt(datas[3]);
+        		inventoryModel.addRow(new Object[] {id,name,price,qty});
+        		inventoryItems.add(new Item(id,name,price,qty));
+        	}
+        	for (Item it : inventoryItems) {
+				System.out.println(it.GetID()+it.GetName()+it.GetPrice()+it.GetQty());
+			}
+        }catch(IOException e) {
+        	System.out.println("Error");
+        }
+	}
+	public static void SaveData() {
+		//create/save
+    	try {
+    		FileWriter fw = new FileWriter(new File("C:\\Users\\User\\Inventory.txt"));
+    		for (Item it : inventoryItems) {
+    			fw.write(it.GetID()+","
+    		    		+it.GetName()+","
+    		    		+it.GetPrice()+","
+    		    		+it.GetQty()+"\n");
+			}
+    		fw.close();
+    	}catch(IOException error) {
+    		System.out.println("Error!");
+    	}
+	}
+	public static void main(String[] args) {
+		/*
+		 CRUD???
+		 C - CREATE (Check)
+		 R - Retrieve (Check)
+		 U - UPDATE (Check)
+		 D - DELETE (Check)
+		 */	
+		JFrame frame = new JFrame("POS");
+		frame.setSize(620,450);
+		InventoryPanel();
+		CashierPanel();
+		RetrieveData();
+		frame.add(tab);
+		frame.setLocationRelativeTo(null);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setVisible(true);
+	}
+}
