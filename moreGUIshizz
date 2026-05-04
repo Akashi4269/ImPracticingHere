@@ -1,0 +1,229 @@
+public class BorrowRecord {
+	private String id, studentName, bookTitle, category;
+	private int days;
+	
+	public void SetData(String id, String studentName, String bookTitle, String category, int days){
+		this.id = id;
+		this.studentName = studentName;
+		this.bookTitle = bookTitle;
+		this.category = category;
+		this.days = days;
+	}
+	public String GetId() {return id;}
+	public String GetName() {return studentName;}
+	public String GetBook() {return bookTitle;}
+	public String GetCategory() {return category;}
+	public int GetDays() {return days;}
+}
+========================================================================================================
+import javax.swing.*;
+import java.awt.*;
+import javax.swing.table.DefaultTableModel;
+import java.io.*;
+import java.util.Scanner;
+import java.util.ArrayList;
+
+public class Main {
+	//global
+	static ArrayList<BorrowRecord> records = new ArrayList<>();
+	static JFrame frame = new JFrame("School Library");
+	static JTextField idField, studentField, bookField, daysField;
+	static JComboBox<String> categoryComboBox;
+	static DefaultTableModel model;
+	static JTable table;
+	static JButton addBtn, updateBtn, deleteBtn, cancelBtn;
+	
+	static File file = new File("recorded datas.txt");
+	
+	public static void main(String[] args) {
+	//local	
+		//frame initialization
+		frame.setSize(750,400);
+		frame.setLayout(new FlowLayout());
+		
+		//initialization
+		idField = new JTextField(8);
+		studentField = new JTextField(8);
+		bookField = new JTextField(8);
+		daysField = new JTextField(8);
+		
+		addBtn = new JButton("Add");
+		updateBtn = new JButton("Update");
+		updateBtn.setVisible(false);
+		deleteBtn = new JButton("Delete");
+		deleteBtn.setVisible(false);
+		cancelBtn = new JButton("Cancel");
+		cancelBtn.setVisible(false);
+		
+		
+		categoryComboBox = new JComboBox();
+		categoryComboBox.addItem("Fiction");
+		categoryComboBox.addItem("Science");
+		categoryComboBox.addItem("History");
+		
+		model = new DefaultTableModel();
+		model.addColumn("ID"); 				//column 0
+		model.addColumn("Name");				//column 1
+		model.addColumn("Book Title");		//column 2
+		model.addColumn("Category");			//column 3
+		model.addColumn("Days");				//column 4
+		model.addColumn("Status");			//column 5
+		
+		table = new JTable(model);
+		
+		JScrollPane scrollView = new JScrollPane(table);
+		scrollView.setPreferredSize(new Dimension(700,290));
+		
+		//components
+		frame.add(new JLabel("ID")); frame.add(idField);
+		frame.add(new JLabel("Name"));frame.add(studentField);
+		frame.add(new JLabel("Book Title"));frame.add(bookField);
+		frame.add(new JLabel("Category"));frame.add(categoryComboBox);
+		frame.add(new JLabel("Days"));frame.add(daysField);
+		frame.add(addBtn);
+		frame.add(updateBtn);
+		frame.add(deleteBtn);
+		frame.add(cancelBtn);
+		
+		frame.add(scrollView);
+		
+		//frame settings
+		frame.setLocationRelativeTo(null);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setVisible(true);
+		
+		//Actions
+		addBtn.addActionListener(e->{HandleAddAction(); });
+		updateBtn.addActionListener(e->{HandleUpdateAction();});
+		deleteBtn.addActionListener(e->{HandleDeleteAction();});
+		cancelBtn.addActionListener(e->{HandleCancelAction();});
+		table.getSelectionModel().addListSelectionListener(e->{HandleSelectedRow();});
+		
+		//Load Data
+		LoadData();
+	}
+	public static void HandleAddAction() {
+		String id = idField.getText();
+		String name = studentField.getText();
+		String book = bookField.getText();
+		String category = categoryComboBox.getSelectedItem()+"";
+		int days = Integer.parseInt(daysField.getText());
+		
+		//array list
+		BorrowRecord record = new BorrowRecord();
+		record.SetData(id, name, book, category, days);
+		records.add(record);
+		SaveData();
+		RefreshTable();
+		ClearComponents();
+		
+	}
+	 static void HandleUpdateAction() {
+		int row = table.getSelectedRow();
+		//guardian pattern
+		if(row <=-1) {
+			return;
+		}
+		
+		String id = idField.getText();
+		String name = studentField.getText();
+		String book = bookField.getText();
+		String category = categoryComboBox.getSelectedItem()+"";
+		int days = Integer.parseInt(daysField.getText());
+		
+		records.get(row).SetData(id, name, book, category, days);
+		SaveData();
+		RefreshTable();
+		ClearComponents();
+		ButtonsVisibility(true);
+	}
+	 static void HandleDeleteAction() {
+		int row = table.getSelectedRow();
+		//guardian pattern
+		if(row <=-1) {
+			return;
+		}
+		records.remove(row);
+		SaveData();
+		RefreshTable();
+		ClearComponents();
+		ButtonsVisibility(true);
+	}
+	 static void HandleCancelAction() {
+		 ClearComponents();
+		 ButtonsVisibility(true);
+	 }
+	 static void HandleSelectedRow() {
+		int row = table.getSelectedRow();
+		//guardian pattern
+		if(row <=-1) {
+			return;
+		}
+		idField.setText(model.getValueAt(row, 0)+"");
+		studentField.setText(model.getValueAt(row, 1)+"");
+		bookField.setText(model.getValueAt(row, 2)+"");
+		categoryComboBox.setSelectedItem((model.getValueAt(row, 3)+""));
+		daysField.setText(model.getValueAt(row, 4)+"");
+		
+		ButtonsVisibility(false);
+	}
+	static void SaveData() {
+		try {
+			FileWriter fw = new FileWriter(file);
+			for (BorrowRecord record : records) {
+				fw.write(record.GetId()+","
+						+record.GetName()+","
+						+record.GetBook()+","
+						+record.GetCategory()+","
+						+record.GetDays()+"\n");
+			}
+			fw.close();
+		}catch(IOException error) {
+			JOptionPane.showMessageDialog(null, "Cannot save the file!");
+		}
+	}
+	static void LoadData() {
+		//records.clear();
+		try {
+			Scanner scan = new Scanner(file);
+			while(scan.hasNextLine()) {
+				String[] datas = scan.nextLine().split(",");
+				BorrowRecord record = new BorrowRecord();
+				record.SetData(datas[0], datas[1], datas[2], datas[3], Integer.parseInt(datas[4]));
+				records.add(record);
+			}
+			scan.close();
+			RefreshTable();
+		}catch(IOException error) {
+			JOptionPane.showMessageDialog(null, "Cannot load the file!");
+		}
+	}
+	static void RefreshTable() {
+		model.setRowCount(0);
+		for (BorrowRecord record : records) {
+			String status = record.GetDays() <= 7? "On time" : "Late";
+			model.addRow(new Object[] {
+					record.GetId(),
+					record.GetName(),
+					record.GetBook(),
+					record.GetCategory(),
+					record.GetDays(),
+					status
+			});
+		}
+	}
+	static void ClearComponents() {
+		idField.setText("");
+		studentField.setText("");
+		bookField.setText("");
+		daysField.setText("");
+		categoryComboBox.setSelectedIndex(0);
+	}
+	static void ButtonsVisibility(boolean visibility) {
+		idField.setEditable(visibility);
+		addBtn.setVisible(visibility);
+		updateBtn.setVisible(!visibility);
+		deleteBtn.setVisible(!visibility);
+		cancelBtn.setVisible(!visibility);
+	}
+}
