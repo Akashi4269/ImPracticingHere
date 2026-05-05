@@ -1,0 +1,180 @@
+// Tasks OOP
+public class Tasks {
+		private int taskID;
+		private String title;
+		private String duedate;
+		private String status;
+		private String priority;
+		
+		public void SetTasks(int taskID, String title, String duedate, String status, String priority) {
+			this.taskID = taskID;
+			this.title = title;
+			this.duedate = duedate;
+			this.status = status;
+			this.priority = priority;
+		}
+		
+		public int getTaskID() { return taskID; }
+		public String getTitle() { return title; }
+		public String getDueDate() { return duedate; }
+		public String getStatus() { return status; }
+		public String getPriority() { return priority; }
+}
+
+//==============================================================================
+// FileManager OOP
+import java.io.*;
+import java.util.*;
+
+import javax.swing.JOptionPane;
+
+public class FileManager {
+	private static FileManager instance;
+	private File file = new File("/home/user/Java_Practices/TaskToDoList/TaskList.txt");
+	
+	public ArrayList<Tasks> doTasks = new ArrayList<>();
+	
+		//Private Constructor
+		private FileManager() {}
+	
+	//Singleton Pattern
+	public static FileManager GetInstance() {
+		if (instance == null) {
+			instance = new FileManager();
+		}
+		return instance;
+	}
+	// Save
+	public void SaveData() {
+		try { FileWriter fw = new FileWriter(file);
+				for (Tasks tsk : doTasks) {
+					fw.write(tsk.getTaskID() + "," + tsk.getTitle() + "," + tsk.getDueDate() + "," + tsk.getStatus() + "\n");
+				}
+				fw.close();
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(null, "Cannot save the file!");
+		}
+		
+	}
+	// Load
+	public void LoadData() {
+		doTasks.clear();
+		try { Scanner sc = new Scanner(file);
+			while (sc.hasNextLine()) {
+				String[] data = sc.nextLine().split(",");
+				Tasks task = new Tasks();
+				task.SetTasks(Integer.parseInt(data[0]), data[1], data[2], data[3], data[4]);
+				doTasks.add(task);
+			}
+			sc.close();
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(null, "Cannot load or the file may not exist!");
+		}
+	}
+}
+
+//==============================================================================
+// ToDoList OOP
+import javax.swing.*;
+import javax.swing.table.*;
+import java.awt.*;
+import java.util.*;
+
+public class ToDoList extends JPanel {
+		//Declarations
+	ArrayList<Tasks> doTasks;
+	JTextField idField, nameField, dueField, statusField, prioField;
+	JButton submit, delete, cancel, update;
+	DefaultTableModel model;
+	JTable table;
+	
+	ToDoList() {
+		setLayout(new FlowLayout());
+		doTasks = FileManager.GetInstance().doTasks;
+		// Inputs
+		idField = new JTextField(10);
+		nameField = new JTextField(10);
+		dueField = new JTextField(10);
+		statusField = new JTextField(10);
+		prioField = new JTextField(10);
+		submit = new JButton("Submit");
+		delete = new JButton("Delete");
+		cancel = new JButton("Cancel");
+		update = new JButton("Update");
+		delete.setVisible(false);
+		cancel.setVisible(false);
+		// Table
+		model.addColumn("ID");
+		model.addColumn("Name");
+		model.addColumn("Due Date");
+		model.addColumn("Status");
+		model.addColumn("Priority");
+		table = new JTable(model);
+		JScrollPane scroll = new JScrollPane(table);
+		scroll.setPreferredSize(new Dimension (1200, 700));
+		// Components
+		add(new JLabel("ID")); add(idField);
+		add(new JLabel("Name")); add(nameField);
+		add(new JLabel("Due Date")); add(dueField);
+		add(new JLabel("Status")); add(statusField);
+		add(new JLabel("Priority")); add(prioField);
+		add(submit);
+		add(delete);
+		add(cancel);
+		add(update);
+		// Actions
+		
+	}
+	
+	public void AddOrUpdate() {
+		String id = idField.getText();
+		String nm = nameField.getText();
+		String due = dueField.getText();
+		String prio = prioField.getText();
+		
+		// Validate
+		if (nm.isEmpty()) {
+			JOptionPane.showMessageDialog(null, "Name cannot be empty!");
+			return;
+		}
+		if (update) {
+			
+		}
+		
+	}
+	public void Delete() {
+		
+	}
+	
+	public void Cancel() {
+		
+	}
+	public void Select() {
+		
+	}
+}
+//==============================================================================
+// Main OOP
+import javax.swing.*;
+import java.awt.*;
+
+public class Main {
+	static JFrame frame = new JFrame("To Do List");
+	static JTabbedPane tab = new JTabbedPane();
+	
+	public static void main(String[] args) {
+		// Frame
+		frame.setSize(1280, 720);
+		frame.setLayout(new BorderLayout());
+		// Add Tabs
+		
+		tab.add("Tasks", new ToDoList());
+		frame.add(tab, BorderLayout.CENTER);
+		// Frame Settings
+		frame.setLocationRelativeTo(null);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setVisible(true);
+		
+	}
+}
+
